@@ -6,7 +6,7 @@ import { carpetMaterial } from '../physics/Materials.js';
 export function buildCarpet(scene, world) {
   // Visual
   const geo = new THREE.PlaneGeometry(FIELD.WIDTH, FIELD.DEPTH);
-  const mat = new THREE.MeshLambertMaterial({ color: 0x2d5a27 }); // dark carpet green
+  const mat = new THREE.MeshLambertMaterial({ color: 0x111111 }); // dark carpet green
   const mesh = new THREE.Mesh(geo, mat);
   mesh.rotation.x = -Math.PI / 2;
   mesh.receiveShadow = true;

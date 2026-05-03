@@ -20,58 +20,57 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-const scene  = new THREE.Scene();
+const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x1a1a2e);
-scene.fog = new THREE.Fog(0x1a1a2e, 20, 60);
+scene.fog = new THREE.Fog(0x1a1a2e, 30, 80);
 
 const camera = new THREE.PerspectiveCamera(
   60, window.innerWidth / window.innerHeight, 0.01, 200
 );
-camera.position.set(0, 10, 10);
+camera.position.set(0, 12, 12);
 
 const camController = new CameraController(camera, renderer.domElement);
 
-const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+const ambient = new THREE.AmbientLight(0xffffff, 0.4);
 scene.add(ambient);
 
-const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-sun.position.set(5, 15, 5);
+const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(0, 20, 0);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(4096, 4096);
 sun.shadow.camera.left   = -FIELD.WIDTH / 2;
 sun.shadow.camera.right  =  FIELD.WIDTH / 2;
 sun.shadow.camera.top    =  FIELD.DEPTH / 2;
 sun.shadow.camera.bottom = -FIELD.DEPTH / 2;
 scene.add(sun);
 
+const redLight = new THREE.PointLight(0xff2200, 0.8, 10);
+redLight.position.set(FIELD.WIDTH / 2 - 2, 3, 0);
+scene.add(redLight);
+
+const blueLight = new THREE.PointLight(0x0044ff, 0.8, 10);
+blueLight.position.set(-FIELD.WIDTH / 2 + 2, 3, 0);
+scene.add(blueLight);
+
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.81, 0) });
 world.broadphase = new CANNON.SAPBroadphase(world);
 world.allowSleep = true;
 registerContactMaterials(world);
 
-buildField(scene, world);
-
-const { body: robotBody, group: robotGroup } = buildChassis(
-  scene, world, [FIELD.WIDTH / 2 - 1.5, 0.25, 0]
-);
-
-const FIXED_STEP  = 1 / 60;
-const MAX_SUBSTEP = 3;
-let lastTime = performance.now();
+let robotBody, robotGroup;
 
 function loop() {
   requestAnimationFrame(loop);
 
   const now   = performance.now();
-  const delta = Math.min((now - lastTime) / 1000, 0.05);
-  lastTime    = now;
+  const delta = Math.min((now - performance.now()) / 1000, 0.05);
 
   const gp    = getGamepadInputs();
   const kb    = getDriveInputs();
   const input = gp ?? kb;
   applyDrive(robotBody, input.left, input.right);
 
-  world.step(FIXED_STEP, delta, MAX_SUBSTEP);
+  world.step(1 / 60, delta, 3);
 
   robotGroup.position.copy(robotBody.position);
   robotGroup.quaternion.copy(robotBody.quaternion);
@@ -82,4 +81,14 @@ function loop() {
   renderer.render(scene, camera);
 }
 
-loop();
+async function init() {
+  await buildField(scene, world);
+
+  const chassis = buildChassis(scene, world, [FIELD.WIDTH / 2 - 2, 0.25, 0]);
+  robotBody  = chassis.body;
+  robotGroup = chassis.group;
+
+  loop();
+}
+
+init();
