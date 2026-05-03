@@ -41,14 +41,13 @@ export function buildChassis(scene, world, startPosition = [0, 0.15, 0]) {
   const fL = config.frameLength;
   const fW = config.frameWidth;
 
-  // Front bumper
-  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT,  fL/2 + bumpT/2, -bumpH/2 + config.frameHeight/2, 0,  'front');
-  // Back bumper
-  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, -fL/2 - bumpT/2, -bumpH/2 + config.frameHeight/2, 0,  'back');
-  // Left bumper
-  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT*2, 0, -bumpH/2 + config.frameHeight/2,  fW/2 + bumpT/2, 'left');
-  // Right bumper
-  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT*2, 0, -bumpH/2 + config.frameHeight/2, -fW/2 - bumpT/2, 'right');
+  const bumperY = -bumpH / 2 + config.frameHeight / 2;
+  // Front/back panels: thin in X (bumpT), span full Z including corners (fW + 2*bumpT)
+  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT * 2,  fL / 2 + bumpT / 2, bumperY, 0);
+  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT * 2, -fL / 2 - bumpT / 2, bumperY, 0);
+  // Left/right panels: span inner X length (fL), thin in Z (bumpT)
+  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY,  fW / 2 + bumpT / 2);
+  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY, -fW / 2 - bumpT / 2);
 
   // Wheels (visual only — drive handled by physics forces on body)
   const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });

@@ -58,12 +58,15 @@ world.allowSleep = true;
 registerContactMaterials(world);
 
 let robotBody, robotGroup;
+let syncFuelBalls = null;
+let lastTime = performance.now();
 
 function loop() {
   requestAnimationFrame(loop);
 
   const now   = performance.now();
-  const delta = Math.min((now - performance.now()) / 1000, 0.05);
+  const delta = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
 
   const gp    = getGamepadInputs();
   const kb    = getDriveInputs();
@@ -75,6 +78,8 @@ function loop() {
   robotGroup.position.copy(robotBody.position);
   robotGroup.quaternion.copy(robotBody.quaternion);
 
+  syncFuelBalls?.();
+
   camController.followTarget(robotBody.position);
   camController.update();
 
@@ -82,9 +87,10 @@ function loop() {
 }
 
 async function init() {
-  await buildField(scene, world);
+  const field = await buildField(scene, world);
+  syncFuelBalls = field.syncFuelBalls;
 
-  const chassis = buildChassis(scene, world, [FIELD.WIDTH / 2 - 2, 0.25, 0]);
+  const chassis = buildChassis(scene, world, [-3.5, 0.25, 0]);
   robotBody  = chassis.body;
   robotGroup = chassis.group;
 
