@@ -5,7 +5,6 @@ import { buildFuelBalls }   from './FuelBalls.js';
 
 export async function buildField(scene, world) {
   buildCarpet(scene, world);
-  buildGuardrails(scene, world);
   await buildFieldModels(scene);
   const syncFuelBalls = buildFuelBalls(scene, world);
   return { syncFuelBalls };

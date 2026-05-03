@@ -3,13 +3,10 @@ import * as CANNON from 'cannon-es';
 import { config } from './RobotConfig.js';
 import { bumperMaterial } from '../physics/Materials.js';
 
-export function buildChassis(scene, world, startPosition = [0, 0.15, 0]) {
+export function buildChassis(scene, world, startPosition = [0, 0.25, 0]) {
   const [sx, sy, sz] = startPosition;
 
-  // === CANNON physics body ===
   const body = new CANNON.Body({ mass: config.mass, material: bumperMaterial });
-
-  // Main chassis box
   const chassisShape = new CANNON.Box(new CANNON.Vec3(
     config.frameLength / 2,
     config.frameHeight / 2,
@@ -21,25 +18,20 @@ export function buildChassis(scene, world, startPosition = [0, 0.15, 0]) {
   body.angularDamping = config.angularDamping;
   world.addBody(body);
 
-  // === THREE.js visual group ===
   const group = new THREE.Group();
 
-  // Frame
-  const frameMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
-  const frameGeo = new THREE.BoxGeometry(
-    config.frameLength,
-    config.frameHeight,
-    config.frameWidth,
-  );
-  const frameMesh = new THREE.Mesh(frameGeo, frameMat);
-  group.add(frameMesh);
+  // Main frame
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.6, metalness: 0.8 });
+  const frameGeo = new THREE.BoxGeometry(config.frameLength, config.frameHeight, config.frameWidth);
+  group.add(new THREE.Mesh(frameGeo, frameMat));
 
-  // Bumpers
-  const bumperMat2 = new THREE.MeshLambertMaterial({ color: 0xcc2222 }); // red default
-  const bumpH = config.bumperHeight;
-  const bumpT = config.bumperThick;
-  const fL = config.frameLength;
-  const fW = config.frameWidth;
+  // Bumpers — 4 panels around perimeter
+  const bumperMat2 = new THREE.MeshStandardMaterial({ color: 0xcc2222, roughness: 0.8 });
+  const H = config.bumperHeight;
+  const T = config.bumperThick;
+  const FL = config.frameLength;
+  const FW = config.frameWidth;
+  const Y = -config.frameHeight / 2 + H / 2;
 
   const bumperY = -bumpH / 2 + config.frameHeight / 2;
   // Front/back panels: thin in X (bumpT), span full Z including corners (fW + 2*bumpT)
@@ -49,36 +41,27 @@ export function buildChassis(scene, world, startPosition = [0, 0.15, 0]) {
   addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY,  fW / 2 + bumpT / 2);
   addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY, -fW / 2 - bumpT / 2);
 
-  // Wheels (visual only — drive handled by physics forces on body)
-  const wheelMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-  const wheelGeo = new THREE.CylinderGeometry(
-    config.wheelRadius, config.wheelRadius, config.wheelWidth, 20
-  );
+  // Left and right
+  [FW/2 + T/2, -FW/2 - T/2].forEach(z => {
+    const geo = new THREE.BoxGeometry(FL, H, T);
+    const mesh = new THREE.Mesh(geo, bumperMat2);
+    mesh.position.set(0, Y, z);
+    group.add(mesh);
+  });
+
+  // Wheels
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+  const wheelGeo = new THREE.CylinderGeometry(config.wheelRadius, config.wheelRadius, config.wheelWidth, 20);
   wheelGeo.rotateZ(Math.PI / 2);
 
-  const wheelPositions = [
-    [ config.wheelbase,  0,  config.trackWidth / 2],
-    [ config.wheelbase,  0, -config.trackWidth / 2],
-    [ 0,                 0,  config.trackWidth / 2],
-    [ 0,                 0, -config.trackWidth / 2],
-    [-config.wheelbase,  0,  config.trackWidth / 2],
-    [-config.wheelbase,  0, -config.trackWidth / 2],
-  ];
-
-  wheelPositions.forEach(([wx, wy, wz]) => {
-    const wMesh = new THREE.Mesh(wheelGeo, wheelMat);
-    wMesh.position.set(wx, wy - config.frameHeight/2, wz);
-    group.add(wMesh);
+  [config.wheelbase, 0, -config.wheelbase].forEach(wx => {
+    [config.trackWidth / 2, -config.trackWidth / 2].forEach(wz => {
+      const wMesh = new THREE.Mesh(wheelGeo, wheelMat);
+      wMesh.position.set(wx, -config.frameHeight / 2, wz);
+      group.add(wMesh);
+    });
   });
 
   scene.add(group);
-
   return { body, group };
-}
-
-function addBumperPanel(group, mat, w, h, d, x, y, z) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(x, y, z);
-  group.add(mesh);
 }
