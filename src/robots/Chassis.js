@@ -33,13 +33,13 @@ export function buildChassis(scene, world, startPosition = [0, 0.25, 0]) {
   const FW = config.frameWidth;
   const Y = -config.frameHeight / 2 + H / 2;
 
-  // Front and back
-  [FL/2 + T/2, -FL/2 - T/2].forEach(x => {
-    const geo = new THREE.BoxGeometry(T, H, FW + T * 2);
-    const mesh = new THREE.Mesh(geo, bumperMat2);
-    mesh.position.set(x, Y, 0);
-    group.add(mesh);
-  });
+  const bumperY = -bumpH / 2 + config.frameHeight / 2;
+  // Front/back panels: thin in X (bumpT), span full Z including corners (fW + 2*bumpT)
+  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT * 2,  fL / 2 + bumpT / 2, bumperY, 0);
+  addBumperPanel(group, bumperMat2, bumpT, bumpH, fW + bumpT * 2, -fL / 2 - bumpT / 2, bumperY, 0);
+  // Left/right panels: span inner X length (fL), thin in Z (bumpT)
+  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY,  fW / 2 + bumpT / 2);
+  addBumperPanel(group, bumperMat2, fL, bumpH, bumpT, 0, bumperY, -fW / 2 - bumpT / 2);
 
   // Left and right
   [FW/2 + T/2, -FW/2 - T/2].forEach(z => {
