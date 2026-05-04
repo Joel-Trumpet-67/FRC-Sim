@@ -41,7 +41,7 @@ ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = 12;
 scene.add(ceiling);
 
-// Arena walls — dark like real FRC venue
+// Arena walls
 [-1, 1].forEach(side => {
   const wallGeo = new THREE.PlaneGeometry(FIELD.WIDTH + 10, 14);
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x08080f, roughness: 1.0 });
@@ -60,11 +60,11 @@ scene.add(ceiling);
   scene.add(wall);
 });
 
-// Ambient — cool white like arena fluorescents
+// Ambient
 const ambient = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambient);
 
-// Overhead lighting rigs — 9 lights, bright white
+// Overhead lighting rigs
 const rigPositions = [
   [-FIELD.WIDTH/3, -FIELD.DEPTH/3],
   [0,              -FIELD.DEPTH/3],
@@ -86,7 +86,6 @@ rigPositions.forEach(([x, z]) => {
   scene.add(light);
   scene.add(light.target);
 
-  // Light rig bar visual
   const barGeo = new THREE.BoxGeometry(1.5, 0.06, 0.06);
   const barMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9 });
   const bar = new THREE.Mesh(barGeo, barMat);
@@ -101,8 +100,6 @@ world.allowSleep = true;
 registerContactMaterials(world);
 
 let robotBody, robotGroup;
-let syncFuelBalls = null;
-let lastTime = performance.now();
 
 const FIXED_STEP  = 1 / 60;
 const MAX_SUBSTEP = 3;
@@ -112,7 +109,7 @@ function loop() {
   requestAnimationFrame(loop);
   const now   = performance.now();
   const delta = Math.min((now - lastTime) / 1000, 0.05);
-  lastTime = now;
+  lastTime    = now;
 
   const gp    = getGamepadInputs();
   const kb    = getDriveInputs();
@@ -124,8 +121,6 @@ function loop() {
   robotGroup.position.copy(robotBody.position);
   robotGroup.quaternion.copy(robotBody.quaternion);
 
-  syncFuelBalls?.();
-
   camController.followTarget(robotBody.position);
   camController.update();
 
@@ -133,13 +128,10 @@ function loop() {
 }
 
 async function init() {
-  const field = await buildField(scene, world);
-  syncFuelBalls = field.syncFuelBalls;
-
+  await buildField(scene, world);
   const chassis = buildChassis(scene, world, [-3.5, 0.25, 0]);
   robotBody  = chassis.body;
   robotGroup = chassis.group;
-
   loop();
 }
 
