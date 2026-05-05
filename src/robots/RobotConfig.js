@@ -13,6 +13,6 @@ export const config = {
   wheelbase:      ROBOT.WHEELBASE,
   maxSpeed:       4.5,
   maxTorque:      25,
-  linearDamping:  0.3,
-  angularDamping: 0.4,
+  linearDamping:  0.8,
+  angularDamping: 0.95,
 };

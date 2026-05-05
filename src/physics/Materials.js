@@ -6,13 +6,16 @@ export const fieldWallMaterial = new CANNON.Material('fieldWall');
 export const wheelMaterial     = new CANNON.Material('wheel');
 
 export function registerContactMaterials(world) {
-  // Wheel on carpet — high friction, no bounce
   world.addContactMaterial(new CANNON.ContactMaterial(
     wheelMaterial, carpetMaterial,
     { friction: 0.85, restitution: 0.0 }
   ));
 
-  // Bumper on bumper/wall — medium friction, slight bounce
+  world.addContactMaterial(new CANNON.ContactMaterial(
+    bumperMaterial, carpetMaterial,
+    { friction: 0.7, restitution: 0.0 }
+  ));
+
   world.addContactMaterial(new CANNON.ContactMaterial(
     bumperMaterial, fieldWallMaterial,
     { friction: 0.4, restitution: 0.15 }

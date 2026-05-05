@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 import * as CANNON from 'cannon-es';
 import { buildField }            from './field/Field.js';
-import { buildChassis }          from './robots/Chassis.js';
 import { applyDrive }            from './robots/DriveSystem.js';
-import { getDriveInputs, getGamepadInputs } from './core/InputManager.js';
-import { registerContactMaterials }         from './physics/Materials.js';
+import { getDriveInputs, getGamepadInputs, getMechanismInputs, getGamepadMechanismInputs } from './core/InputManager.js';
+import { registerContactMaterials } from './physics/Materials.js';
 import { CameraController }      from './camera/CameraController.js';
 import { FIELD }                 from './field/FieldDimensions.js';
 
@@ -33,7 +32,6 @@ camera.position.set(0, 20, 18);
 
 const camController = new CameraController(camera, renderer.domElement);
 
-// Arena ceiling
 const ceilingGeo = new THREE.PlaneGeometry(60, 60);
 const ceilingMat = new THREE.MeshStandardMaterial({ color: 0x06060e, roughness: 1.0 });
 const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
@@ -41,7 +39,6 @@ ceiling.rotation.x = Math.PI / 2;
 ceiling.position.y = 12;
 scene.add(ceiling);
 
-// Arena walls
 [-1, 1].forEach(side => {
   const wallGeo = new THREE.PlaneGeometry(FIELD.WIDTH + 10, 14);
   const wallMat = new THREE.MeshStandardMaterial({ color: 0x08080f, roughness: 1.0 });
@@ -60,11 +57,9 @@ scene.add(ceiling);
   scene.add(wall);
 });
 
-// Ambient
 const ambient = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(ambient);
 
-// Overhead lighting rigs
 const rigPositions = [
   [-FIELD.WIDTH/3, -FIELD.DEPTH/3],
   [0,              -FIELD.DEPTH/3],
@@ -93,13 +88,16 @@ rigPositions.forEach(([x, z]) => {
   scene.add(bar);
 });
 
-// Physics
 const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.81, 0) });
 world.broadphase = new CANNON.SAPBroadphase(world);
 world.allowSleep = true;
+world.defaultContactMaterial.friction = 0.7;
+world.defaultContactMaterial.restitution = 0.0;
 registerContactMaterials(world);
 
-let robotBody, robotGroup;
+// Expose globally for robot loader
+window._scene = scene;
+window._world = world;
 
 const FIXED_STEP  = 1 / 60;
 const MAX_SUBSTEP = 3;
@@ -111,27 +109,31 @@ function loop() {
   const delta = Math.min((now - lastTime) / 1000, 0.05);
   lastTime    = now;
 
-  const gp    = getGamepadInputs();
-  const kb    = getDriveInputs();
-  const input = gp ?? kb;
-  applyDrive(robotBody, input.left, input.right);
+  const robot = window._robot;
+  if (robot && robot.body) {
+    const gp    = getGamepadInputs();
+    const kb    = getDriveInputs();
+    const input = gp ?? kb;
+    applyDrive(robot.body, input.left, input.right);
+
+    const mechGP = getGamepadMechanismInputs();
+    const mechKB = getMechanismInputs();
+    const mech   = Object.keys(mechGP).length ? mechGP : mechKB;
+    robot.update(mech);
+  }
 
   world.step(FIXED_STEP, delta, MAX_SUBSTEP);
-
-  robotGroup.position.copy(robotBody.position);
-  robotGroup.quaternion.copy(robotBody.quaternion);
-
-  camController.followTarget(robotBody.position);
   camController.update();
-
   renderer.render(scene, camera);
 }
 
 async function init() {
   await buildField(scene, world);
-  const chassis = buildChassis(scene, world, [-3.5, 0.25, 0]);
-  robotBody  = chassis.body;
-  robotGroup = chassis.group;
+
+  window.dispatchEvent(new CustomEvent('sim-ready', {
+    detail: { scene, world, camController }
+  }));
+
   loop();
 }
 

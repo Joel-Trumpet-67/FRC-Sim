@@ -1,0 +1,83 @@
+{
+  "name": "WCP CC 2026",
+  "mass": 52.2,
+  "scale": 0.001,
+  "parts": [
+    {
+      "name": "structure",
+      "file": "WCP-CC2026_-_Structure.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "isBase": true
+    },
+    {
+      "name": "bumpers",
+      "file": "WCP-CC2026_-_Bumpers.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "color": "#cc2222"
+    },
+    {
+      "name": "drivetrain",
+      "file": "WCP-CC2026_-_Drivetrain__1_.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "name": "hopper",
+      "file": "WCP-CC2026_-_Hopper.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "name": "hood",
+      "file": "WCP-CC2026_-_Hood.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "joint": "hinge",
+      "axis": [0, 0, 1],
+      "minAngle": 0,
+      "maxAngle": 60,
+      "control": "buttonA"
+    },
+    {
+      "name": "hook",
+      "file": "WCP-CC2026_-_Hook.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "joint": "hinge",
+      "axis": [0, 0, 1],
+      "minAngle": 0,
+      "maxAngle": 90,
+      "control": "buttonB"
+    },
+    {
+      "name": "intake",
+      "file": "WCP-CC2026_-_Intake.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "joint": "hinge",
+      "axis": [1, 0, 0],
+      "minAngle": -30,
+      "maxAngle": 0,
+      "control": "buttonX"
+    },
+    {
+      "name": "feeder",
+      "file": "WCP-CC2026_-_Feeder.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0]
+    },
+    {
+      "name": "column",
+      "file": "WCP-CC2026_-_Column__1_.gltf",
+      "position": [0, 0, 0],
+      "rotation": [0, 0, 0],
+      "joint": "slider",
+      "axis": [0, 1, 0],
+      "minPos": 0,
+      "maxPos": 0.5,
+      "control": "leftTrigger"
+    }
+  ]
+}
